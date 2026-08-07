@@ -1,0 +1,55 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function role() {
+      return isSignedIn() ? userDoc().data.role : null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && role() == 'admin';
+    }
+
+    function canEdit() {
+      return isSignedIn() && (role() == 'admin' || role() == 'manager');
+    }
+
+    // Every signed-in user can read their own profile and teammates' names/roles.
+    // Only an admin can change roles. A user can create their own profile on
+    // signup (defaults to 'viewer') but cannot set their own role afterward.
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == uid
+                    && request.resource.data.role == 'viewer';
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /campaigns/{campaignId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if canEdit();
+
+      match /influencers/{influencerId} {
+        allow read: if isSignedIn();
+        allow create, update, delete: if canEdit();
+
+        match /conversations/{conversationId} {
+          allow read: if isSignedIn();
+          allow create: if canEdit();
+          // Conversation log entries are append-only history — no edits or deletes,
+          // even for managers, so the record of what was said stays trustworthy.
+          allow update, delete: if false;
+        }
+      }
+    }
+  }
+}
