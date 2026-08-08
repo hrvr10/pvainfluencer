@@ -66,12 +66,24 @@ export default function InfluencerDetailPage() {
         {influencer && (
           <>
             <div className="mt-3 flex items-start justify-between">
-              <div>
-                <h1 className="font-display text-3xl">{influencer.name}</h1>
-                <p className="font-mono text-sm text-muted">
-                  {influencer.handle} · <span className="capitalize">{influencer.platform}</span>
-                  {influencer.followers ? ` · ${influencer.followers.toLocaleString()} followers` : ''}
-                </p>
+              <div className="flex items-start gap-4">
+                {influencer.profileScreenshotUrl && (
+                  <a href={influencer.profileScreenshotUrl} target="_blank" rel="noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={influencer.profileScreenshotUrl}
+                      alt=""
+                      className="h-16 w-16 rounded-full object-cover"
+                    />
+                  </a>
+                )}
+                <div>
+                  <h1 className="font-display text-3xl">{influencer.name}</h1>
+                  <p className="font-mono text-sm text-muted">
+                    {influencer.handle} · <span className="capitalize">{influencer.platform}</span>
+                    {influencer.followers ? ` · ${influencer.followers.toLocaleString()} followers` : ''}
+                  </p>
+                </div>
               </div>
               <RoleGate allow={['admin', 'manager']}>
                 {influencer.status !== 'declined' && (
@@ -124,17 +136,29 @@ export default function InfluencerDetailPage() {
 
               <ol className="space-y-3">
                 {conversations?.map((c) => (
-                  <li key={c.id} className="card p-4">
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="font-mono text-xs text-pine-700">{formatDate(c.date)}</span>
-                      <span className="text-xs text-muted">logged by {c.loggedByName}</span>
-                    </div>
-                    <p className="text-sm text-ink/80">{c.summary}</p>
-                    {c.nextFollowUp && (
-                      <p className="mt-2 font-mono text-xs uppercase tracking-wide text-citrine-600">
-                        Follow up by {formatDate(c.nextFollowUp)}
-                      </p>
+                  <li key={c.id} className="card flex gap-4 p-4">
+                    {c.screenshotUrl && (
+                      <a href={c.screenshotUrl} target="_blank" rel="noreferrer" className="shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={c.screenshotUrl}
+                          alt="Chat screenshot"
+                          className="h-16 w-16 rounded object-cover"
+                        />
+                      </a>
                     )}
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="font-mono text-xs text-pine-700">{formatDate(c.date)}</span>
+                        <span className="text-xs text-muted">logged by {c.loggedByName}</span>
+                      </div>
+                      <p className="text-sm text-ink/80">{c.summary}</p>
+                      {c.nextFollowUp && (
+                        <p className="mt-2 font-mono text-xs uppercase tracking-wide text-citrine-600">
+                          Follow up by {formatDate(c.nextFollowUp)}
+                        </p>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ol>

@@ -91,11 +91,25 @@ export default function CampaignDetailPage() {
                         <td className="px-4 py-3">
                           <Link
                             href={`/campaigns/${campaignId}/influencers/${inf.id}`}
-                            className="font-medium text-ink hover:text-pine-700"
+                            className="flex items-center gap-3"
                           >
-                            {inf.name}
+                            {inf.profileScreenshotUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={inf.profileScreenshotUrl}
+                                alt=""
+                                className="h-9 w-9 shrink-0 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-canvas font-display text-sm italic text-muted">
+                                {inf.name?.[0]?.toUpperCase()}
+                              </span>
+                            )}
+                            <div>
+                              <span className="font-medium text-ink hover:text-pine-700">{inf.name}</span>
+                              <div className="font-mono text-xs text-muted">{inf.handle}</div>
+                            </div>
                           </Link>
-                          <div className="font-mono text-xs text-muted">{inf.handle}</div>
                         </td>
                         <td className="px-4 py-3 capitalize text-ink/80">{inf.platform}</td>
                         <td className="px-4 py-3 font-mono text-ink/80">
@@ -106,12 +120,29 @@ export default function CampaignDetailPage() {
                         </td>
                         <td className="px-4 py-3 text-ink/70">
                           {inf.lastConversationDate ? (
-                            <>
-                              <div>{formatDate(inf.lastConversationDate)}</div>
-                              <div className="max-w-xs truncate text-xs text-muted">
-                                {inf.lastConversationSummary}
+                            <div className="flex items-center gap-2">
+                              {inf.lastConversationScreenshotUrl && (
+                                <a
+                                  href={inf.lastConversationScreenshotUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={inf.lastConversationScreenshotUrl}
+                                    alt="Last chat screenshot"
+                                    className="h-9 w-9 shrink-0 rounded object-cover"
+                                  />
+                                </a>
+                              )}
+                              <div>
+                                <div>{formatDate(inf.lastConversationDate)}</div>
+                                <div className="max-w-xs truncate text-xs text-muted">
+                                  {inf.lastConversationSummary}
+                                </div>
                               </div>
-                            </>
+                            </div>
                           ) : (
                             <span className="text-muted">No contact logged</span>
                           )}

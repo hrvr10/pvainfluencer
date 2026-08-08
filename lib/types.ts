@@ -59,6 +59,8 @@ export interface Influencer {
   notes?: string;
   lastConversationSummary?: string;
   lastConversationDate?: string;
+  lastConversationScreenshotUrl?: string;
+  profileScreenshotUrl?: string;
 }
 
 export interface Conversation {
@@ -67,4 +69,5 @@ export interface Conversation {
   summary: string;
   nextFollowUp?: string;
   loggedByName: string;
+  screenshotUrl?: string;
 }
