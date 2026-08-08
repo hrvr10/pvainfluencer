@@ -55,6 +55,7 @@ export interface Influencer {
   niche?: string;
   location?: string;
   rate?: string;
+  shippingAddress?: string;
   status: InfluencerStatus;
   notes?: string;
   lastConversationSummary?: string;

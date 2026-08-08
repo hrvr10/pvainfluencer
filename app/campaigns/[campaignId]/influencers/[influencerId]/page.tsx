@@ -111,6 +111,7 @@ export default function InfluencerDetailPage() {
               <DetailCard label="Niche" value={influencer.niche} />
               <DetailCard label="Location" value={influencer.location} />
               <DetailCard label="Rate / quote" value={influencer.rate} />
+              <DetailCard label="Shipping address" value={influencer.shippingAddress} />
             </section>
 
             {influencer.notes && (
@@ -172,10 +173,10 @@ export default function InfluencerDetailPage() {
         )}
       </main>
 
-      {showLogForm && (
+      {showLogForm && influencer && (
         <ConversationFormModal
           campaignId={campaignId}
-          influencerId={influencerId}
+          influencer={influencer}
           onClose={() => setShowLogForm(false)}
         />
       )}

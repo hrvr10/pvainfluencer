@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { anthropic, VISION_MODEL } from '@/lib/anthropic';
 import { verifyIdToken } from '@/lib/verifyAuth';
+import { INFLUENCER_STAGES } from '@/lib/types';
 
 const MAX_IMAGES = 8;
+const STATUS_VALUES = [...INFLUENCER_STAGES, 'declined'];
 
 export async function POST(req: Request) {
   const uid = await verifyIdToken(req);
@@ -14,7 +16,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Extraction is not configured on the server.' }, { status: 503 });
   }
 
-  const { images } = await req.json();
+  const { images, currentStatus } = await req.json();
   if (!Array.isArray(images) || images.length === 0) {
     return NextResponse.json({ error: 'No images provided' }, { status: 400 });
   }
@@ -25,11 +27,12 @@ export async function POST(req: Request) {
   try {
     const message = await anthropic.messages.create({
       model: VISION_MODEL,
-      max_tokens: 512,
+      max_tokens: 768,
       tools: [
         {
           name: 'extract_conversation',
-          description: 'Summarize one or more chat/DM screenshots between a brand and an influencer.',
+          description:
+            'Summarize one or more chat/DM screenshots between a brand and an influencer, and pull out any contact/logistics details or pipeline-stage signal mentioned in them.',
           input_schema: {
             type: 'object',
             properties: {
@@ -43,8 +46,28 @@ export async function POST(req: Request) {
                 description:
                   'If a specific future date is mentioned for following up or a deadline, return it as YYYY-MM-DD. Empty string if no date is mentioned.',
               },
+              email: {
+                type: 'string',
+                description: 'Email address the influencer shared in this conversation, if any. Empty string if none visible.',
+              },
+              phone: {
+                type: 'string',
+                description: 'Phone number the influencer shared in this conversation, if any. Empty string if none visible.',
+              },
+              shippingAddress: {
+                type: 'string',
+                description:
+                  'Full shipping/delivery address the influencer shared (street, city, state, pincode — whatever is visible), if any. Empty string if none visible.',
+              },
+              suggestedStatus: {
+                type: 'string',
+                enum: ['', ...STATUS_VALUES],
+                description:
+                  `The pipeline stage this conversation implies the influencer should now be at, one of: ${STATUS_VALUES.join(', ')}. ` +
+                  `Their current stage is "${currentStatus || 'unknown'}" — only suggest a change if this conversation clearly moves them forward (e.g. they agree to terms → confirmed, brand ships product or content goes live → content_live, payment is sent/confirmed → paid) or they clearly decline/drop out → declined. Return an empty string if nothing in this conversation implies a stage change.`,
+              },
             },
-            required: ['summary', 'nextFollowUp'],
+            required: ['summary', 'nextFollowUp', 'email', 'phone', 'shippingAddress', 'suggestedStatus'],
           },
         },
       ],
@@ -65,8 +88,8 @@ export async function POST(req: Request) {
               type: 'text' as const,
               text:
                 images.length > 1
-                  ? `Summarize these ${images.length} chat screenshots for a CRM log entry. They may be sequential scrolls of the same conversation — read them together as one thread, in the order given.`
-                  : 'Summarize this chat screenshot for a CRM log entry.',
+                  ? `Summarize these ${images.length} chat screenshots for a CRM log entry, and extract any contact details, shipping address, or pipeline-stage signal. They may be sequential scrolls of the same conversation — read them together as one thread, in the order given.`
+                  : 'Summarize this chat screenshot for a CRM log entry, and extract any contact details, shipping address, or pipeline-stage signal.',
             },
           ],
         },

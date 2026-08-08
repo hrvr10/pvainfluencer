@@ -6,14 +6,27 @@ import { db } from '@/lib/firebase';
 import { useAuth } from './AuthProvider';
 import { Modal } from './CampaignFormModal';
 import { prepareScreenshot, uploadScreenshot, authedFetch, PreparedScreenshot } from '@/lib/screenshots';
+import { Influencer, InfluencerStatus, STAGE_LABELS } from '@/lib/types';
+
+interface DetectedField<T = string> {
+  value: T;
+  apply: boolean;
+}
+
+interface DetectedUpdates {
+  email?: DetectedField;
+  phone?: DetectedField;
+  shippingAddress?: DetectedField;
+  status?: DetectedField<InfluencerStatus>;
+}
 
 export function ConversationFormModal({
   campaignId,
-  influencerId,
+  influencer,
   onClose,
 }: {
   campaignId: string;
-  influencerId: string;
+  influencer: Influencer;
   onClose: () => void;
 }) {
   const { profile } = useAuth();
@@ -26,6 +39,7 @@ export function ConversationFormModal({
   const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState<string | null>(null);
+  const [detected, setDetected] = useState<DetectedUpdates>({});
 
   async function handleScreenshotsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
@@ -41,12 +55,28 @@ export function ConversationFormModal({
 
       const res = await authedFetch('/api/extract-conversation', {
         images: nextScreenshots.map((p) => ({ base64: p.base64, mediaType: p.mediaType })),
+        currentStatus: influencer.status,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Extraction failed');
 
       if (data.summary) setSummary(data.summary);
       if (data.nextFollowUp) setNextFollowUp(data.nextFollowUp);
+
+      const nextDetected: DetectedUpdates = {};
+      if (data.email && data.email !== influencer.email) {
+        nextDetected.email = { value: data.email, apply: true };
+      }
+      if (data.phone && data.phone !== influencer.phone) {
+        nextDetected.phone = { value: data.phone, apply: true };
+      }
+      if (data.shippingAddress && data.shippingAddress !== influencer.shippingAddress) {
+        nextDetected.shippingAddress = { value: data.shippingAddress, apply: true };
+      }
+      if (data.suggestedStatus && data.suggestedStatus !== influencer.status) {
+        nextDetected.status = { value: data.suggestedStatus, apply: true };
+      }
+      setDetected(nextDetected);
     } catch (err: any) {
       setExtractError(err.message || 'Could not read those screenshots — fill the summary in manually.');
     } finally {
@@ -59,15 +89,22 @@ export function ConversationFormModal({
     setScreenshotPreviews((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function updateDetected<K extends keyof DetectedUpdates>(field: K, patch: Partial<DetectedField<any>>) {
+    setDetected((prev) => ({
+      ...prev,
+      [field]: prev[field] ? { ...prev[field], ...patch } : prev[field],
+    }));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     const loggedByName = profile?.name || profile?.email || 'Unknown';
-    const influencerRef = doc(db, 'campaigns', campaignId, 'influencers', influencerId);
+    const influencerRef = doc(db, 'campaigns', campaignId, 'influencers', influencer.id);
 
     const screenshotUrls = await Promise.all(
       screenshots.map((s) => {
-        const path = `screenshots/conversations/${campaignId}/${influencerId}/${crypto.randomUUID()}.jpg`;
+        const path = `screenshots/conversations/${campaignId}/${influencer.id}/${crypto.randomUUID()}.jpg`;
         return uploadScreenshot(path, s);
       }),
     );
@@ -82,21 +119,28 @@ export function ConversationFormModal({
     });
 
     // Denormalize onto the influencer doc so the campaign roster table can
-    // show "last conversation" without a query per row.
+    // show "last conversation" without a query per row, and apply whichever
+    // AI-detected contact/status updates the user left checked.
     await updateDoc(influencerRef, {
       lastConversationDate: date,
       lastConversationSummary: summary,
       lastConversationScreenshotUrl: screenshotUrls[0] || null,
+      ...(detected.email?.apply ? { email: detected.email.value } : {}),
+      ...(detected.phone?.apply ? { phone: detected.phone.value } : {}),
+      ...(detected.shippingAddress?.apply ? { shippingAddress: detected.shippingAddress.value } : {}),
+      ...(detected.status?.apply ? { status: detected.status.value } : {}),
     });
 
     setSubmitting(false);
     onClose();
   }
 
+  const hasDetected = Object.keys(detected).length > 0;
+
   return (
     <Modal title="Log a conversation" onClose={onClose}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Field label="Chat screenshots (optional — auto-fills the summary below)">
+      <form onSubmit={handleSubmit} className="max-h-[75vh] space-y-4 overflow-y-auto pr-1">
+        <Field label="Chat screenshots (optional — auto-fills the fields below)">
           <div className="space-y-2">
             {screenshotPreviews.length > 0 && (
               <div className="flex flex-wrap gap-2">
@@ -130,6 +174,56 @@ export function ConversationFormModal({
           {extracting && <p className="mt-1.5 font-mono text-xs text-muted">Reading screenshots…</p>}
           {extractError && <p className="mt-1.5 text-xs text-rust-500">{extractError}</p>}
         </Field>
+
+        {hasDetected && (
+          <div className="rounded-md border border-pine-600/30 bg-pine-600/5 p-3">
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-pine-700">
+              Detected from screenshots — review before saving
+            </p>
+            <div className="space-y-2">
+              {detected.email && (
+                <DetectedRow
+                  label="Email"
+                  value={detected.email.value}
+                  checked={detected.email.apply}
+                  onToggle={(apply) => updateDetected('email', { apply })}
+                  onChange={(value) => updateDetected('email', { value })}
+                />
+              )}
+              {detected.phone && (
+                <DetectedRow
+                  label="Phone"
+                  value={detected.phone.value}
+                  checked={detected.phone.apply}
+                  onToggle={(apply) => updateDetected('phone', { apply })}
+                  onChange={(value) => updateDetected('phone', { value })}
+                />
+              )}
+              {detected.shippingAddress && (
+                <DetectedRow
+                  label="Shipping address"
+                  value={detected.shippingAddress.value}
+                  checked={detected.shippingAddress.apply}
+                  onToggle={(apply) => updateDetected('shippingAddress', { apply })}
+                  onChange={(value) => updateDetected('shippingAddress', { value })}
+                />
+              )}
+              {detected.status && (
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={detected.status.apply}
+                    onChange={(e) => updateDetected('status', { apply: e.target.checked })}
+                  />
+                  <span className="w-32 shrink-0 text-ink/60">Advance status</span>
+                  <span className="font-medium text-ink">
+                    {STAGE_LABELS[influencer.status]} → {STAGE_LABELS[detected.status.value]}
+                  </span>
+                </label>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <Field label="Date">
@@ -170,6 +264,32 @@ export function ConversationFormModal({
         </div>
       </form>
     </Modal>
+  );
+}
+
+function DetectedRow({
+  label,
+  value,
+  checked,
+  onToggle,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  checked: boolean;
+  onToggle: (checked: boolean) => void;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="flex items-center gap-2 text-sm">
+      <input type="checkbox" checked={checked} onChange={(e) => onToggle(e.target.checked)} />
+      <span className="w-32 shrink-0 text-ink/60">{label}</span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="input flex-1 py-1 text-sm"
+      />
+    </label>
   );
 }
 
