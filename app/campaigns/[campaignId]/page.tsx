@@ -1,22 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Campaign, Influencer } from '@/lib/types';
+import { Campaign, INFLUENCER_STAGES, Influencer } from '@/lib/types';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navbar } from '@/components/Navbar';
 import { RoleGate } from '@/components/RoleGate';
 import { StatusBadge } from '@/components/StatusBadge';
 import { InfluencerFormModal } from '@/components/InfluencerFormModal';
 
+const STAGE_ORDER = [...INFLUENCER_STAGES, 'declined'];
+
+type SortKey = 'name' | 'followers' | 'status' | 'lastConversationDate';
+type SortDir = 'asc' | 'desc';
+
 export default function CampaignDetailPage() {
   const { campaignId } = useParams<{ campaignId: string }>();
   const [campaign, setCampaign] = useState<Campaign | null | undefined>(undefined);
   const [influencers, setInfluencers] = useState<Influencer[] | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   useEffect(() => {
     return onSnapshot(doc(db, 'campaigns', campaignId), (snap) => {
@@ -33,6 +40,38 @@ export default function CampaignDetailPage() {
       setInfluencers(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
     });
   }, [campaignId]);
+
+  function toggleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  }
+
+  const sortedInfluencers = useMemo(() => {
+    if (!influencers) return influencers;
+    const sorted = [...influencers].sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case 'name':
+          cmp = a.name.localeCompare(b.name);
+          break;
+        case 'followers':
+          cmp = (a.followers || 0) - (b.followers || 0);
+          break;
+        case 'status':
+          cmp = STAGE_ORDER.indexOf(a.status) - STAGE_ORDER.indexOf(b.status);
+          break;
+        case 'lastConversationDate':
+          cmp = (a.lastConversationDate || '').localeCompare(b.lastConversationDate || '');
+          break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [influencers, sortKey, sortDir]);
 
   return (
     <ProtectedRoute>
@@ -73,20 +112,27 @@ export default function CampaignDetailPage() {
               </div>
             )}
 
-            {influencers && influencers.length > 0 && (
-              <div className="card overflow-hidden">
+            {sortedInfluencers && sortedInfluencers.length > 0 && (
+              <div className="card overflow-hidden overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-line bg-canvas/60">
                     <tr className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                      <th className="px-4 py-3 font-medium">Influencer</th>
+                      <SortableHeader label="Influencer" sortKey="name" activeKey={sortKey} dir={sortDir} onClick={toggleSort} />
                       <th className="px-4 py-3 font-medium">Platform</th>
-                      <th className="px-4 py-3 font-medium">Followers</th>
-                      <th className="px-4 py-3 font-medium">Status</th>
-                      <th className="px-4 py-3 font-medium">Last conversation</th>
+                      <SortableHeader label="Followers" sortKey="followers" activeKey={sortKey} dir={sortDir} onClick={toggleSort} />
+                      <SortableHeader label="Status" sortKey="status" activeKey={sortKey} dir={sortDir} onClick={toggleSort} />
+                      <th className="px-4 py-3 font-medium">Product chosen</th>
+                      <SortableHeader
+                        label="Last conversation"
+                        sortKey="lastConversationDate"
+                        activeKey={sortKey}
+                        dir={sortDir}
+                        onClick={toggleSort}
+                      />
                     </tr>
                   </thead>
                   <tbody>
-                    {influencers.map((inf) => (
+                    {sortedInfluencers.map((inf) => (
                       <tr key={inf.id} className="border-b border-line last:border-0 hover:bg-canvas/40">
                         <td className="px-4 py-3">
                           <Link
@@ -118,6 +164,7 @@ export default function CampaignDetailPage() {
                         <td className="px-4 py-3">
                           <StatusBadge status={inf.status} />
                         </td>
+                        <td className="px-4 py-3 text-ink/80">{inf.productChosen || '—'}</td>
                         <td className="px-4 py-3 text-ink/70">
                           {inf.lastConversationDate ? (
                             <div className="flex items-center gap-2">
@@ -161,6 +208,34 @@ export default function CampaignDetailPage() {
         <InfluencerFormModal campaignId={campaignId} onClose={() => setShowForm(false)} />
       )}
     </ProtectedRoute>
+  );
+}
+
+function SortableHeader({
+  label,
+  sortKey,
+  activeKey,
+  dir,
+  onClick,
+}: {
+  label: string;
+  sortKey: SortKey;
+  activeKey: SortKey;
+  dir: SortDir;
+  onClick: (key: SortKey) => void;
+}) {
+  const active = sortKey === activeKey;
+  return (
+    <th className="px-4 py-3 font-medium">
+      <button
+        type="button"
+        onClick={() => onClick(sortKey)}
+        className={`flex items-center gap-1 uppercase tracking-widest ${active ? 'text-pine-700' : 'hover:text-ink'}`}
+      >
+        {label}
+        <span className="font-mono">{active ? (dir === 'asc' ? '↑' : '↓') : ''}</span>
+      </button>
+    </th>
   );
 }
 

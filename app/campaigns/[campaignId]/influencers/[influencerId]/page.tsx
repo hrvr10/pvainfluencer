@@ -111,6 +111,7 @@ export default function InfluencerDetailPage() {
               <DetailCard label="Niche" value={influencer.niche} />
               <DetailCard label="Location" value={influencer.location} />
               <DetailCard label="Rate / quote" value={influencer.rate} />
+              <DetailCard label="Product chosen" value={influencer.productChosen} />
               <DetailCard label="Shipping address" value={influencer.shippingAddress} />
             </section>
 

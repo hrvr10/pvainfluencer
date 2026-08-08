@@ -17,6 +17,7 @@ interface DetectedUpdates {
   email?: DetectedField;
   phone?: DetectedField;
   shippingAddress?: DetectedField;
+  productChosen?: DetectedField;
   status?: DetectedField<InfluencerStatus>;
 }
 
@@ -73,6 +74,9 @@ export function ConversationFormModal({
       if (data.shippingAddress && data.shippingAddress !== influencer.shippingAddress) {
         nextDetected.shippingAddress = { value: data.shippingAddress, apply: true };
       }
+      if (data.productChosen && data.productChosen !== influencer.productChosen) {
+        nextDetected.productChosen = { value: data.productChosen, apply: true };
+      }
       if (data.suggestedStatus && data.suggestedStatus !== influencer.status) {
         nextDetected.status = { value: data.suggestedStatus, apply: true };
       }
@@ -128,6 +132,7 @@ export function ConversationFormModal({
       ...(detected.email?.apply ? { email: detected.email.value } : {}),
       ...(detected.phone?.apply ? { phone: detected.phone.value } : {}),
       ...(detected.shippingAddress?.apply ? { shippingAddress: detected.shippingAddress.value } : {}),
+      ...(detected.productChosen?.apply ? { productChosen: detected.productChosen.value } : {}),
       ...(detected.status?.apply ? { status: detected.status.value } : {}),
     });
 
@@ -206,6 +211,15 @@ export function ConversationFormModal({
                   checked={detected.shippingAddress.apply}
                   onToggle={(apply) => updateDetected('shippingAddress', { apply })}
                   onChange={(value) => updateDetected('shippingAddress', { value })}
+                />
+              )}
+              {detected.productChosen && (
+                <DetectedRow
+                  label="Product chosen"
+                  value={detected.productChosen.value}
+                  checked={detected.productChosen.apply}
+                  onToggle={(apply) => updateDetected('productChosen', { apply })}
+                  onChange={(value) => updateDetected('productChosen', { value })}
                 />
               )}
               {detected.status && (

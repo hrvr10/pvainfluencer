@@ -59,6 +59,11 @@ export async function POST(req: Request) {
                 description:
                   'Full shipping/delivery address the influencer shared (street, city, state, pincode — whatever is visible), if any. Empty string if none visible.',
               },
+              productChosen: {
+                type: 'string',
+                description:
+                  'Which specific product, variant, or color the influencer picked/agreed to, if the conversation mentions one (e.g. "Pink tote bag", "Blue hoodie, size M"). Empty string if no product choice is mentioned.',
+              },
               suggestedStatus: {
                 type: 'string',
                 enum: ['', ...STATUS_VALUES],
@@ -67,7 +72,7 @@ export async function POST(req: Request) {
                   `Their current stage is "${currentStatus || 'unknown'}" — only suggest a change if this conversation clearly moves them forward (e.g. they agree to terms → confirmed, brand ships product or content goes live → content_live, payment is sent/confirmed → paid) or they clearly decline/drop out → declined. Return an empty string if nothing in this conversation implies a stage change.`,
               },
             },
-            required: ['summary', 'nextFollowUp', 'email', 'phone', 'shippingAddress', 'suggestedStatus'],
+            required: ['summary', 'nextFollowUp', 'email', 'phone', 'shippingAddress', 'productChosen', 'suggestedStatus'],
           },
         },
       ],
