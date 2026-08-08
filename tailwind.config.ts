@@ -27,7 +27,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['var(--font-fraunces)', 'serif'],
+        display: ['var(--font-olivera)', 'serif'],
         body: ['var(--font-inter)', 'sans-serif'],
       },
       borderRadius: {

@@ -1,13 +1,18 @@
 import type { Metadata } from 'next';
-import { Fraunces, Inter } from 'next/font/google';
+import { Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import { AuthProvider } from '@/components/AuthProvider';
 import './globals.css';
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  weight: ['500', '600'],
-  style: ['normal', 'italic'],
+// Olivera Chic Modern Serif — demo build, personal-use license only.
+// See public/fonts/readmedemo.txt. Needs a commercial license from
+// creativemarket.com/Pentagonistudio before this ships beyond internal use.
+const olivera = localFont({
+  src: [
+    { path: '../public/fonts/Olivera_Demo.ttf', weight: '400', style: 'normal' },
+    { path: '../public/fonts/OliveraObl_Demo.ttf', weight: '400', style: 'italic' },
+  ],
+  variable: '--font-olivera',
 });
 
 const inter = Inter({
@@ -28,7 +33,7 @@ export const dynamic = 'force-dynamic';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
+    <html lang="en" className={`${olivera.variable} ${inter.variable}`}>
       <body className="min-h-screen bg-canvas font-body text-ink antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
