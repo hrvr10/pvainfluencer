@@ -14,7 +14,7 @@ export function Navbar() {
     <header className="border-b border-line bg-surface">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/dashboard" className="flex items-baseline gap-2">
-          <span className="font-display text-xl italic tracking-tight">Roster</span>
+          <span className="font-display text-lg italic tracking-tight">PVA InfluenceOS</span>
           <span className="hidden text-sm text-muted sm:inline">Influencer collabs</span>
         </Link>
 

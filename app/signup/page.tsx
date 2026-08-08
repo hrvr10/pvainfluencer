@@ -42,7 +42,7 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="font-display text-3xl italic">Roster</div>
+          <div className="font-display text-2xl italic">PVA InfluenceOS</div>
           <p className="mt-1 text-sm text-muted">Create your account</p>
         </div>
 

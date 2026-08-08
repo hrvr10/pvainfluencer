@@ -17,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Roster — Influencer Collaboration Portal',
+  title: 'PVA InfluenceOS — Influencer Collaboration Portal',
   description: 'Track brand campaigns, influencers, and conversation history.',
 };
 

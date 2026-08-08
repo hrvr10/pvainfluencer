@@ -1,4 +1,4 @@
-# Roster — Influencer Collaboration Portal
+# PVA InfluenceOS — Influencer Collaboration Portal
 
 Track brand campaigns, the influencers shortlisted for each one, their contact
 details, and a running log of every conversation with them.
