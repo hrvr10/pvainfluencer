@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { anthropic, VISION_MODEL } from '@/lib/anthropic';
 import { verifyIdToken } from '@/lib/verifyAuth';
 
+const MAX_IMAGES = 8;
+
 export async function POST(req: Request) {
   const uid = await verifyIdToken(req);
   if (!uid) {
@@ -12,9 +14,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Extraction is not configured on the server.' }, { status: 503 });
   }
 
-  const { imageBase64, mediaType } = await req.json();
-  if (!imageBase64) {
-    return NextResponse.json({ error: 'No image provided' }, { status: 400 });
+  const { images } = await req.json();
+  if (!Array.isArray(images) || images.length === 0) {
+    return NextResponse.json({ error: 'No images provided' }, { status: 400 });
+  }
+  if (images.length > MAX_IMAGES) {
+    return NextResponse.json({ error: `Too many screenshots — max ${MAX_IMAGES} at once.` }, { status: 400 });
   }
 
   try {
@@ -24,14 +29,14 @@ export async function POST(req: Request) {
       tools: [
         {
           name: 'extract_conversation',
-          description: 'Summarize a chat/DM screenshot between a brand and an influencer.',
+          description: 'Summarize one or more chat/DM screenshots between a brand and an influencer.',
           input_schema: {
             type: 'object',
             properties: {
               summary: {
                 type: 'string',
                 description:
-                  'A concise 1-3 sentence summary of what was discussed in the visible messages, written from the brand\'s perspective (e.g. "Sent the rate card, they asked for two extra reels").',
+                  'A concise 1-4 sentence summary of what was discussed across all the visible messages, written from the brand\'s perspective (e.g. "Sent the rate card, they asked for two extra reels"). If the screenshots are sequential parts of one longer conversation, summarize it as a single continuous thread.',
               },
               nextFollowUp: {
                 type: 'string',
@@ -48,8 +53,21 @@ export async function POST(req: Request) {
         {
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } },
-            { type: 'text', text: 'Summarize this chat screenshot for a CRM log entry.' },
+            ...images.map((img: { base64: string; mediaType: string }) => ({
+              type: 'image' as const,
+              source: {
+                type: 'base64' as const,
+                media_type: img.mediaType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+                data: img.base64,
+              },
+            })),
+            {
+              type: 'text' as const,
+              text:
+                images.length > 1
+                  ? `Summarize these ${images.length} chat screenshots for a CRM log entry. They may be sequential scrolls of the same conversation — read them together as one thread, in the order given.`
+                  : 'Summarize this chat screenshot for a CRM log entry.',
+            },
           ],
         },
       ],
@@ -57,7 +75,7 @@ export async function POST(req: Request) {
 
     const toolUse = message.content.find((b) => b.type === 'tool_use');
     if (!toolUse || toolUse.type !== 'tool_use') {
-      return NextResponse.json({ error: 'Could not summarize that image.' }, { status: 502 });
+      return NextResponse.json({ error: 'Could not summarize those screenshots.' }, { status: 502 });
     }
     return NextResponse.json(toolUse.input);
   } catch (err) {

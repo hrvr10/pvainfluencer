@@ -22,24 +22,25 @@ export function ConversationFormModal({
   const [nextFollowUp, setNextFollowUp] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const [screenshot, setScreenshot] = useState<PreparedScreenshot | null>(null);
-  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [screenshots, setScreenshots] = useState<PreparedScreenshot[]>([]);
+  const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState<string | null>(null);
 
-  async function handleScreenshotChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handleScreenshotsChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (files.length === 0) return;
     setExtractError(null);
     setExtracting(true);
     try {
-      const prepared = await prepareScreenshot(file);
-      setScreenshot(prepared);
-      setScreenshotPreview(URL.createObjectURL(prepared.blob));
+      const prepared = await Promise.all(files.map(prepareScreenshot));
+      const nextScreenshots = [...screenshots, ...prepared];
+      setScreenshots(nextScreenshots);
+      setScreenshotPreviews((prev) => [...prev, ...prepared.map((p) => URL.createObjectURL(p.blob))]);
 
       const res = await authedFetch('/api/extract-conversation', {
-        imageBase64: prepared.base64,
-        mediaType: prepared.mediaType,
+        images: nextScreenshots.map((p) => ({ base64: p.base64, mediaType: p.mediaType })),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Extraction failed');
@@ -47,10 +48,15 @@ export function ConversationFormModal({
       if (data.summary) setSummary(data.summary);
       if (data.nextFollowUp) setNextFollowUp(data.nextFollowUp);
     } catch (err: any) {
-      setExtractError(err.message || 'Could not read that screenshot — fill the summary in manually.');
+      setExtractError(err.message || 'Could not read those screenshots — fill the summary in manually.');
     } finally {
       setExtracting(false);
     }
+  }
+
+  function removeScreenshot(index: number) {
+    setScreenshots((prev) => prev.filter((_, i) => i !== index));
+    setScreenshotPreviews((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -59,18 +65,19 @@ export function ConversationFormModal({
     const loggedByName = profile?.name || profile?.email || 'Unknown';
     const influencerRef = doc(db, 'campaigns', campaignId, 'influencers', influencerId);
 
-    let screenshotUrl: string | null = null;
-    if (screenshot) {
-      const path = `screenshots/conversations/${campaignId}/${influencerId}/${crypto.randomUUID()}.jpg`;
-      screenshotUrl = await uploadScreenshot(path, screenshot);
-    }
+    const screenshotUrls = await Promise.all(
+      screenshots.map((s) => {
+        const path = `screenshots/conversations/${campaignId}/${influencerId}/${crypto.randomUUID()}.jpg`;
+        return uploadScreenshot(path, s);
+      }),
+    );
 
     await addDoc(collection(influencerRef, 'conversations'), {
       date,
       summary,
       nextFollowUp: nextFollowUp || null,
       loggedByName,
-      screenshotUrl,
+      screenshotUrls,
       createdAt: serverTimestamp(),
     });
 
@@ -79,7 +86,7 @@ export function ConversationFormModal({
     await updateDoc(influencerRef, {
       lastConversationDate: date,
       lastConversationSummary: summary,
-      lastConversationScreenshotUrl: screenshotUrl,
+      lastConversationScreenshotUrl: screenshotUrls[0] || null,
     });
 
     setSubmitting(false);
@@ -89,24 +96,38 @@ export function ConversationFormModal({
   return (
     <Modal title="Log a conversation" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Field label="Chat screenshot (optional — auto-fills the summary below)">
-          <div className="flex items-center gap-3">
-            {screenshotPreview && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={screenshotPreview}
-                alt="Chat screenshot preview"
-                className="h-16 w-16 rounded object-cover"
-              />
+        <Field label="Chat screenshots (optional — auto-fills the summary below)">
+          <div className="space-y-2">
+            {screenshotPreviews.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {screenshotPreviews.map((src, i) => (
+                  <div key={i} className="group relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt="" className="h-16 w-16 rounded object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeScreenshot(i)}
+                      aria-label="Remove screenshot"
+                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink text-xs text-white opacity-0 transition group-hover:opacity-100"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
             <input
               type="file"
               accept="image/*"
-              onChange={handleScreenshotChange}
+              multiple
+              onChange={handleScreenshotsChange}
               className="input file:mr-3 file:rounded file:border-0 file:bg-pine-600 file:px-3 file:py-1.5 file:text-sm file:text-white"
             />
+            <p className="font-mono text-[10px] text-muted">
+              Select multiple at once, or add more after — useful for a chat you had to scroll through.
+            </p>
           </div>
-          {extracting && <p className="mt-1.5 font-mono text-xs text-muted">Reading screenshot…</p>}
+          {extracting && <p className="mt-1.5 font-mono text-xs text-muted">Reading screenshots…</p>}
           {extractError && <p className="mt-1.5 text-xs text-rust-500">{extractError}</p>}
         </Field>
 

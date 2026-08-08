@@ -135,19 +135,10 @@ export default function InfluencerDetailPage() {
               )}
 
               <ol className="space-y-3">
-                {conversations?.map((c) => (
-                  <li key={c.id} className="card flex gap-4 p-4">
-                    {c.screenshotUrl && (
-                      <a href={c.screenshotUrl} target="_blank" rel="noreferrer" className="shrink-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={c.screenshotUrl}
-                          alt="Chat screenshot"
-                          className="h-16 w-16 rounded object-cover"
-                        />
-                      </a>
-                    )}
-                    <div className="min-w-0 flex-1">
+                {conversations?.map((c) => {
+                  const shots = c.screenshotUrls?.length ? c.screenshotUrls : c.screenshotUrl ? [c.screenshotUrl] : [];
+                  return (
+                    <li key={c.id} className="card p-4">
                       <div className="mb-1 flex items-center justify-between">
                         <span className="font-mono text-xs text-pine-700">{formatDate(c.date)}</span>
                         <span className="text-xs text-muted">logged by {c.loggedByName}</span>
@@ -158,9 +149,23 @@ export default function InfluencerDetailPage() {
                           Follow up by {formatDate(c.nextFollowUp)}
                         </p>
                       )}
-                    </div>
-                  </li>
-                ))}
+                      {shots.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {shots.map((url, i) => (
+                            <a key={i} href={url} target="_blank" rel="noreferrer">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={url}
+                                alt="Chat screenshot"
+                                className="h-16 w-16 rounded object-cover"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ol>
             </section>
           </>

@@ -69,5 +69,7 @@ export interface Conversation {
   summary: string;
   nextFollowUp?: string;
   loggedByName: string;
+  /** @deprecated superseded by screenshotUrls; kept for conversations logged before multi-screenshot support */
   screenshotUrl?: string;
+  screenshotUrls?: string[];
 }
