@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Fraunces, Inter, JetBrains_Mono } from 'next/font/google';
+import { Fraunces, Inter } from 'next/font/google';
 import { AuthProvider } from '@/components/AuthProvider';
 import './globals.css';
 
@@ -16,12 +16,6 @@ const inter = Inter({
   weight: ['400', '500', '600'],
 });
 
-const mono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  weight: ['400', '500'],
-});
-
 export const metadata: Metadata = {
   title: 'Roster — Influencer Collaboration Portal',
   description: 'Track brand campaigns, influencers, and conversation history.',
@@ -34,7 +28,7 @@ export const dynamic = 'force-dynamic';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable} ${mono.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
       <body className="min-h-screen bg-canvas font-body text-ink antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>

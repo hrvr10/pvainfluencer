@@ -29,7 +29,6 @@ const config: Config = {
       fontFamily: {
         display: ['var(--font-fraunces)', 'serif'],
         body: ['var(--font-inter)', 'sans-serif'],
-        mono: ['var(--font-mono)', 'monospace'],
       },
       borderRadius: {
         sm: '4px',

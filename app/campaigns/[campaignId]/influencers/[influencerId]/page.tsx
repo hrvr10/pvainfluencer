@@ -55,12 +55,12 @@ export default function InfluencerDetailPage() {
       <main className="mx-auto max-w-4xl px-6 py-10">
         <Link
           href={`/campaigns/${campaignId}`}
-          className="font-mono text-xs uppercase tracking-wide text-muted hover:text-pine-700"
+          className="text-sm text-muted hover:text-pine-700"
         >
           ← Back to campaign
         </Link>
 
-        {influencer === undefined && <p className="mt-4 font-mono text-sm text-muted">loading…</p>}
+        {influencer === undefined && <p className="mt-4 text-sm text-muted">Loading…</p>}
         {influencer === null && <p className="mt-4 text-sm text-rust-500">Influencer not found.</p>}
 
         {influencer && (
@@ -79,7 +79,7 @@ export default function InfluencerDetailPage() {
                 )}
                 <div>
                   <h1 className="font-display text-3xl">{influencer.name}</h1>
-                  <p className="font-mono text-sm text-muted">
+                  <p className="text-sm text-muted">
                     {influencer.handle} · <span className="capitalize">{influencer.platform}</span>
                     {influencer.followers ? ` · ${influencer.followers.toLocaleString()} followers` : ''}
                   </p>
@@ -89,7 +89,7 @@ export default function InfluencerDetailPage() {
                 {influencer.status !== 'declined' && (
                   <button
                     onClick={() => setStatus('declined')}
-                    className="font-mono text-xs uppercase tracking-wide text-muted hover:text-rust-500"
+                    className="text-sm text-muted hover:text-rust-500"
                   >
                     Mark declined
                   </button>
@@ -117,7 +117,7 @@ export default function InfluencerDetailPage() {
 
             {influencer.notes && (
               <section className="mt-6 card p-4">
-                <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Notes</p>
+                <p className="mb-1 text-xs font-medium text-muted">Notes</p>
                 <p className="text-sm text-ink/80">{influencer.notes}</p>
               </section>
             )}
@@ -142,12 +142,12 @@ export default function InfluencerDetailPage() {
                   return (
                     <li key={c.id} className="card p-4">
                       <div className="mb-1 flex items-center justify-between">
-                        <span className="font-mono text-xs text-pine-700">{formatDate(c.date)}</span>
+                        <span className="text-sm font-medium text-pine-700">{formatDate(c.date)}</span>
                         <span className="text-xs text-muted">logged by {c.loggedByName}</span>
                       </div>
                       <p className="text-sm text-ink/80">{c.summary}</p>
                       {c.nextFollowUp && (
-                        <p className="mt-2 font-mono text-xs uppercase tracking-wide text-citrine-600">
+                        <p className="mt-2 text-xs font-medium text-citrine-600">
                           Follow up by {formatDate(c.nextFollowUp)}
                         </p>
                       )}
@@ -188,7 +188,7 @@ export default function InfluencerDetailPage() {
 function DetailCard({ label, value }: { label: string; value?: string | null }) {
   return (
     <div className="card p-4">
-      <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">{label}</p>
+      <p className="mb-1 text-xs font-medium text-muted">{label}</p>
       <p className="text-sm text-ink/80">{value || '—'}</p>
     </div>
   );

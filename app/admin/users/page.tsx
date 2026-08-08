@@ -46,7 +46,7 @@ export default function TeamPage() {
           <div className="card mt-6 overflow-hidden">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-line bg-canvas/60">
-                <tr className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                <tr className="text-xs font-medium text-muted">
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Email</th>
                   <th className="px-4 py-3 font-medium">Role</th>

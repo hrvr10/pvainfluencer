@@ -13,7 +13,7 @@ const COLORS: Record<InfluencerStatus, string> = {
 export function StatusBadge({ status }: { status: InfluencerStatus }) {
   return (
     <span
-      className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-[11px] uppercase tracking-wide ${COLORS[status]}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${COLORS[status]}`}
     >
       {STAGE_LABELS[status]}
     </span>

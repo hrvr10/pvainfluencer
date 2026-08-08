@@ -117,7 +117,7 @@ export function InfluencerFormModal({
               className="input file:mr-3 file:rounded file:border-0 file:bg-pine-600 file:px-3 file:py-1.5 file:text-sm file:text-white"
             />
           </div>
-          {extracting && <p className="mt-1.5 font-mono text-xs text-muted">Reading screenshot…</p>}
+          {extracting && <p className="mt-1.5 text-xs text-muted">Reading screenshot…</p>}
           {extractError && <p className="mt-1.5 text-xs text-rust-500">{extractError}</p>}
         </Field>
 

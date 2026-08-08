@@ -77,20 +77,18 @@ export default function CampaignDetailPage() {
     <ProtectedRoute>
       <Navbar />
       <main className="mx-auto max-w-6xl px-6 py-10">
-        <Link href="/dashboard" className="font-mono text-xs uppercase tracking-wide text-muted hover:text-pine-700">
+        <Link href="/dashboard" className="text-sm text-muted hover:text-pine-700">
           ← All campaigns
         </Link>
 
-        {campaign === undefined && <p className="mt-4 font-mono text-sm text-muted">loading…</p>}
+        {campaign === undefined && <p className="mt-4 text-sm text-muted">Loading…</p>}
         {campaign === null && <p className="mt-4 text-sm text-rust-500">Campaign not found.</p>}
 
         {campaign && (
           <>
             <div className="mb-8 mt-3 flex items-end justify-between">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                  {campaign.brandName}
-                </p>
+                <p className="text-sm text-muted">{campaign.brandName}</p>
                 <h1 className="font-display text-3xl">{campaign.campaignName}</h1>
                 <p className="mt-1 text-sm text-muted">
                   {formatDate(campaign.startDate)}
@@ -116,7 +114,7 @@ export default function CampaignDetailPage() {
               <div className="card overflow-hidden overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-line bg-canvas/60">
-                    <tr className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                    <tr className="text-xs font-medium text-muted">
                       <SortableHeader label="Influencer" sortKey="name" activeKey={sortKey} dir={sortDir} onClick={toggleSort} />
                       <th className="px-4 py-3 font-medium">Platform</th>
                       <SortableHeader label="Followers" sortKey="followers" activeKey={sortKey} dir={sortDir} onClick={toggleSort} />
@@ -153,12 +151,12 @@ export default function CampaignDetailPage() {
                             )}
                             <div>
                               <span className="font-medium text-ink hover:text-pine-700">{inf.name}</span>
-                              <div className="font-mono text-xs text-muted">{inf.handle}</div>
+                              <div className="text-xs text-muted">{inf.handle}</div>
                             </div>
                           </Link>
                         </td>
                         <td className="px-4 py-3 capitalize text-ink/80">{inf.platform}</td>
-                        <td className="px-4 py-3 font-mono text-ink/80">
+                        <td className="px-4 py-3 text-ink/80">
                           {inf.followers ? inf.followers.toLocaleString() : '—'}
                         </td>
                         <td className="px-4 py-3">
@@ -230,10 +228,10 @@ function SortableHeader({
       <button
         type="button"
         onClick={() => onClick(sortKey)}
-        className={`flex items-center gap-1 uppercase tracking-widest ${active ? 'text-pine-700' : 'hover:text-ink'}`}
+        className={`flex items-center gap-1 ${active ? 'text-pine-700' : 'hover:text-ink'}`}
       >
         {label}
-        <span className="font-mono">{active ? (dir === 'asc' ? '↑' : '↓') : ''}</span>
+        <span>{active ? (dir === 'asc' ? '↑' : '↓') : ''}</span>
       </button>
     </th>
   );

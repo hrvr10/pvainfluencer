@@ -14,8 +14,6 @@ export default function Home() {
   }, [user, loading, router]);
 
   return (
-    <div className="flex h-screen items-center justify-center font-mono text-sm text-muted">
-      loading…
-    </div>
+    <div className="flex h-screen items-center justify-center text-sm text-muted">Loading…</div>
   );
 }

@@ -15,9 +15,7 @@ export function Navbar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/dashboard" className="flex items-baseline gap-2">
           <span className="font-display text-xl italic tracking-tight">Roster</span>
-          <span className="hidden font-mono text-[11px] uppercase tracking-widest text-muted sm:inline">
-            Influencer collabs
-          </span>
+          <span className="hidden text-sm text-muted sm:inline">Influencer collabs</span>
         </Link>
 
         <nav className="flex items-center gap-5">
@@ -34,9 +32,7 @@ export function Navbar() {
             <div className="flex items-center gap-3 border-l border-line pl-5">
               <div className="text-right leading-tight">
                 <div className="text-sm">{profile.name || profile.email}</div>
-                <div className="font-mono text-[10px] uppercase tracking-wide text-muted">
-                  {ROLE_LABELS[profile.role]}
-                </div>
+                <div className="text-xs text-muted">{ROLE_LABELS[profile.role]}</div>
               </div>
               <button
                 onClick={() => signOut(auth)}

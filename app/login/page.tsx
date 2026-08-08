@@ -32,9 +32,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="font-display text-3xl italic">Roster</div>
-          <p className="mt-1 font-mono text-xs uppercase tracking-widest text-muted">
-            Sign in to your team
-          </p>
+          <p className="mt-1 text-sm text-muted">Sign in to your team</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-line bg-surface p-6">

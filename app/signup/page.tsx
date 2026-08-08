@@ -43,9 +43,7 @@ export default function SignupPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="font-display text-3xl italic">Roster</div>
-          <p className="mt-1 font-mono text-xs uppercase tracking-widest text-muted">
-            Create your account
-          </p>
+          <p className="mt-1 text-sm text-muted">Create your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-line bg-surface p-6">
@@ -75,7 +73,7 @@ export default function SignupPage() {
           {error && <p className="text-sm text-rust-500">{error}</p>}
 
           <p className="text-xs text-muted">
-            New accounts start as <span className="font-mono">Viewer</span>. An admin can grant you
+            New accounts start as <span className="font-medium text-ink/70">Viewer</span>. An admin can grant you
             edit access from the Team page.
           </p>
 

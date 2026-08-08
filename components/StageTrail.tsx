@@ -13,7 +13,7 @@ export function StageTrail({
 }) {
   if (status === 'declined') {
     return (
-      <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wide text-rust-500">
+      <div className="flex items-center gap-2 text-sm text-rust-500">
         <span className="h-2 w-2 rounded-full bg-rust-500" />
         Declined — collaboration did not proceed
       </div>
@@ -37,7 +37,7 @@ export function StageTrail({
               onClick={() => clickable && onAdvance?.(stage)}
               title={clickable ? `Mark as ${STAGE_LABELS[stage]}` : STAGE_LABELS[stage]}
               className={[
-                'relative flex h-9 items-center rounded-sm border px-3 font-mono text-[11px] uppercase tracking-wide transition',
+                'relative flex h-9 items-center rounded-full border px-3.5 text-xs font-medium transition',
                 active
                   ? 'border-pine-600 bg-pine-600 text-white shadow-[0_0_0_3px_rgba(45,93,79,0.15)]'
                   : passed

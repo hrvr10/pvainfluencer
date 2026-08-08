@@ -172,17 +172,17 @@ export function ConversationFormModal({
               onChange={handleScreenshotsChange}
               className="input file:mr-3 file:rounded file:border-0 file:bg-pine-600 file:px-3 file:py-1.5 file:text-sm file:text-white"
             />
-            <p className="font-mono text-[10px] text-muted">
+            <p className="text-xs text-muted">
               Select multiple at once, or add more after — useful for a chat you had to scroll through.
             </p>
           </div>
-          {extracting && <p className="mt-1.5 font-mono text-xs text-muted">Reading screenshots…</p>}
+          {extracting && <p className="mt-1.5 text-xs text-muted">Reading screenshots…</p>}
           {extractError && <p className="mt-1.5 text-xs text-rust-500">{extractError}</p>}
         </Field>
 
         {hasDetected && (
           <div className="rounded-md border border-pine-600/30 bg-pine-600/5 p-3">
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-pine-700">
+            <p className="mb-2 text-xs font-medium text-pine-700">
               Detected from screenshots — review before saving
             </p>
             <div className="space-y-2">

@@ -45,9 +45,7 @@ export default function DashboardPage() {
           </RoleGate>
         </div>
 
-        {campaigns === null && (
-          <p className="font-mono text-sm text-muted">loading campaigns…</p>
-        )}
+        {campaigns === null && <p className="text-sm text-muted">Loading campaigns…</p>}
 
         {campaigns?.length === 0 && (
           <div className="card p-10 text-center">
@@ -67,10 +65,10 @@ export default function DashboardPage() {
             >
               <div>
                 <div className="mb-3 flex items-start justify-between">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                  <span className="inline-flex items-center rounded-full bg-pine-50 px-2.5 py-0.5 text-xs font-medium text-pine-700">
                     {STATUS_LABEL[c.status]}
                   </span>
-                  <span className="font-mono text-[10px] text-muted">
+                  <span className="text-xs text-muted">
                     {formatDate(c.startDate)}
                     {c.endDate ? ` – ${formatDate(c.endDate)}` : ''}
                   </span>

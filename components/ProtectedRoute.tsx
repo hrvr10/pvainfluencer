@@ -14,9 +14,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (loading || !user) {
     return (
-      <div className="flex h-screen items-center justify-center font-mono text-sm text-muted">
-        loading…
-      </div>
+      <div className="flex h-screen items-center justify-center text-sm text-muted">Loading…</div>
     );
   }
 
